@@ -3,22 +3,25 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Diagnostics;
 
-namespace QuadTreeLib
+namespace SimpleQuadTree
 {
     /// <summary>
     /// The QuadTreeNode
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class QuadTreeNode<T> where T : IHasRect
+    public class QuadTreeNode<T>
     {
         /// <summary>
         /// Construct a quadtree node with the given bounds 
         /// </summary>
         /// <param name="area"></param>
-        public QuadTreeNode(RectangleF bounds)
+        public QuadTreeNode(RectangleF bounds, Func<T, RectangleF> getRect)
         {
+			GetRect = getRect;
             m_bounds = bounds;
         }
+		
+		public Func<T, RectangleF> GetRect {get; set;}
 
         /// <summary>
         /// The area of this node
@@ -67,17 +70,16 @@ namespace QuadTreeLib
         /// <summary>
         /// Return the contents of this node and all subnodes in the true below this one.
         /// </summary>
-        public List<T> SubTreeContents
+        public IEnumerable<T> SubTreeContents
         {
             get
             {
-                List<T> results = new List<T>();
-
                 foreach (QuadTreeNode<T> node in m_nodes)
-                    results.AddRange(node.SubTreeContents);
+					foreach (T t in node.SubTreeContents)
+						yield return t;
 
-                results.AddRange(this.Contents);
-                return results;
+				foreach (T t in this.Contents)
+					yield return t;
             }
         }
 
@@ -88,18 +90,15 @@ namespace QuadTreeLib
         /// </summary>
         /// <param name="queryArea"></pasram>
         /// <returns></returns>
-        public List<T> Query(RectangleF queryArea)
+        public IEnumerable<T> Query(RectangleF queryArea)
         {
-            // create a list of the items that are found
-            List<T> results = new List<T>();
-
             // this quad contains items that are not entirely contained by
             // it's four sub-quads. Iterate through the items in this quad 
             // to see if they intersect.
             foreach (T item in this.Contents)
             {
-                if (queryArea.IntersectsWith(item.Rectangle))
-                    results.Add(item);
+                if (queryArea.IntersectsWith(GetRect(item)))
+                    yield return item;
             }
 
             foreach (QuadTreeNode<T> node in m_nodes)
@@ -112,7 +111,8 @@ namespace QuadTreeLib
                 // and skip the remaining nodes (break this loop)
                 if (node.Bounds.Contains(queryArea))
                 {
-                    results.AddRange(node.Query(queryArea));
+					foreach (T t in node.Query (queryArea))
+						yield return t;
                     break;
                 }
 
@@ -123,7 +123,8 @@ namespace QuadTreeLib
                 // the other quads
                 if (queryArea.Contains(node.Bounds))
                 {
-                    results.AddRange(node.SubTreeContents);
+					foreach (T t in node.SubTreeContents)
+						yield return t;
                     continue;
                 }
 
@@ -132,12 +133,10 @@ namespace QuadTreeLib
                 // quads
                 if (node.Bounds.IntersectsWith(queryArea))
                 {
-                    results.AddRange(node.Query(queryArea));
-                }
+					foreach (T t in node.Query (queryArea))
+						yield return t;
+				}
             }
-
-
-            return results;
         }
 
         /// <summary>
@@ -147,7 +146,7 @@ namespace QuadTreeLib
         public void Insert(T item)
         {
             // if the item is not contained in this quad, there's a problem
-            if (!m_bounds.Contains(item.Rectangle))
+            if (!m_bounds.Contains(GetRect(item)))
             {
                 Trace.TraceWarning("feature is out of the bounds of this quadtree node");
                 return;
@@ -163,7 +162,7 @@ namespace QuadTreeLib
             // this recurses into the node that is just large enough to fit this item
             foreach (QuadTreeNode<T> node in m_nodes)
             {
-                if (node.Bounds.Contains(item.Rectangle))
+                if (node.Bounds.Contains(GetRect(item)))
                 {
                     node.Insert(item);
                     return;
@@ -198,10 +197,10 @@ namespace QuadTreeLib
             float halfWidth = (m_bounds.Width / 2f);
             float halfHeight = (m_bounds.Height / 2f);
 
-            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(m_bounds.Location, new SizeF(halfWidth, halfHeight))));
-            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight))));
-            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top), new SizeF(halfWidth, halfHeight))));
-            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight))));
+			m_nodes.Add(new QuadTreeNode<T>(new RectangleF(m_bounds.Location, new SizeF(halfWidth, halfHeight)), GetRect));
+            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight)), GetRect));
+            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top), new SizeF(halfWidth, halfHeight)), GetRect));
+            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight)),GetRect));
         }
 
     }

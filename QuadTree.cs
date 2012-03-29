@@ -3,18 +3,18 @@ using System.Drawing;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace QuadTreeLib
+namespace SimpleQuadTree
 {
     /// <summary>
     /// A Quadtree is a structure designed to partition space so
     /// that it's faster to find out what is inside or outside a given 
     /// area. See http://en.wikipedia.org/wiki/Quadtree
-    /// This QuadTree contains items that have an area (RectangleF)
+    /// This QuadTree contains items that have an area (Rectangle)
     /// it will store a reference to the item in the quad 
     /// that is just big enough to hold it. Each quad has a bucket that 
     /// contain multiple items.
     /// </summary>
-    public class QuadTree<T> where T : IHasRect
+    public class QuadTree<T>
     {
         /// <summary>
         /// The root QuadTreeNode
@@ -36,10 +36,10 @@ namespace QuadTreeLib
         /// 
         /// </summary>
         /// <param name="rectangle"></param>
-        public QuadTree(RectangleF rectangle)
+        public QuadTree(RectangleF rectangle, Func<T, RectangleF> getRect)
         {
             m_rectangle = rectangle;
-            m_root = new QuadTreeNode<T>(m_rectangle);
+            m_root = new QuadTreeNode<T>(m_rectangle, getRect);
         }
 
         /// <summary>
@@ -55,13 +55,21 @@ namespace QuadTreeLib
         {
             m_root.Insert(item);
         }
+		
+		public void Remove(T item)
+		{
+			ForEach ( node => {
+				if (node.Contents.Contains (item))
+					node.Contents.Remove (item);
+			});
+		}
 
         /// <summary>
         /// Query the QuadTree, returning the items that are in the given area
         /// </summary>
         /// <param name="area"></param>
         /// <returns></returns>
-        public List<T> Query(RectangleF area)
+        public IEnumerable<T> Query(RectangleF area)
         {
             return m_root.Query(area);
         }
