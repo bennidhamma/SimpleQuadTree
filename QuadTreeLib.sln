@@ -3,16 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuadTreeLib", "QuadTreeLib.csproj", "{7E471417-3503-4A9D-8769-F5C535E21B2C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{B12E110B-0BA9-43F7-9FCE-57753A738D4C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Default|Any CPU = Default|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7E471417-3503-4A9D-8769-F5C535E21B2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E471417-3503-4A9D-8769-F5C535E21B2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E471417-3503-4A9D-8769-F5C535E21B2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E471417-3503-4A9D-8769-F5C535E21B2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B12E110B-0BA9-43F7-9FCE-57753A738D4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B12E110B-0BA9-43F7-9FCE-57753A738D4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B12E110B-0BA9-43F7-9FCE-57753A738D4C}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{B12E110B-0BA9-43F7-9FCE-57753A738D4C}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{B12E110B-0BA9-43F7-9FCE-57753A738D4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B12E110B-0BA9-43F7-9FCE-57753A738D4C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = QuadTreeLib.csproj

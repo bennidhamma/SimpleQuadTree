@@ -15,13 +15,13 @@ namespace SimpleQuadTree
         /// Construct a quadtree node with the given bounds 
         /// </summary>
         /// <param name="area"></param>
-        public QuadTreeNode(RectangleF bounds, Func<T, RectangleF> getRect)
+        public QuadTreeNode(RectangleF bounds, QuadTree<T> tree)
         {
-			GetRect = getRect;
+			Tree = tree;
             m_bounds = bounds;
         }
 		
-		public Func<T, RectangleF> GetRect {get; set;}
+		public QuadTree<T> Tree {get; set;}
 
         /// <summary>
         /// The area of this node
@@ -97,7 +97,7 @@ namespace SimpleQuadTree
             // to see if they intersect.
             foreach (T item in this.Contents)
             {
-                if (queryArea.IntersectsWith(GetRect(item)))
+                if (queryArea.IntersectsWith(Tree.GetRect(item)))
                     yield return item;
             }
 
@@ -146,7 +146,7 @@ namespace SimpleQuadTree
         public void Insert(T item)
         {
             // if the item is not contained in this quad, there's a problem
-            if (!m_bounds.Contains(GetRect(item)))
+            if (!m_bounds.Contains(Tree.GetRect(item)))
             {
                 Trace.TraceWarning("feature is out of the bounds of this quadtree node");
                 return;
@@ -162,7 +162,7 @@ namespace SimpleQuadTree
             // this recurses into the node that is just large enough to fit this item
             foreach (QuadTreeNode<T> node in m_nodes)
             {
-                if (node.Bounds.Contains(GetRect(item)))
+                if (node.Bounds.Contains(Tree.GetRect(item)))
                 {
                     node.Insert(item);
                     return;
@@ -184,6 +184,18 @@ namespace SimpleQuadTree
             foreach (QuadTreeNode<T> node in this.m_nodes)
                 node.ForEach(action);
         }
+		
+		public IEnumerable<QuadTreeNode<T>> Nodes
+		{
+			get {
+				foreach (var node in this.m_nodes)
+				{
+					yield return node;
+					foreach (var sub in node.m_nodes)
+						yield return sub;
+				}
+			}
+		}
 
         /// <summary>
         /// Internal method to create the subnodes (partitions space)
@@ -191,16 +203,16 @@ namespace SimpleQuadTree
         private void CreateSubNodes()
         {
             // the smallest subnode has an area 
-            if ((m_bounds.Height * m_bounds.Width) <= 10)
+            if ((m_bounds.Height * m_bounds.Width) <= Tree.MinNodeSize)
                 return;
 
             float halfWidth = (m_bounds.Width / 2f);
             float halfHeight = (m_bounds.Height / 2f);
 
-			m_nodes.Add(new QuadTreeNode<T>(new RectangleF(m_bounds.Location, new SizeF(halfWidth, halfHeight)), GetRect));
-            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight)), GetRect));
-            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top), new SizeF(halfWidth, halfHeight)), GetRect));
-            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight)),GetRect));
+			m_nodes.Add(new QuadTreeNode<T>(new RectangleF(m_bounds.Location, new SizeF(halfWidth, halfHeight)), Tree));
+            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight)), Tree));
+            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top), new SizeF(halfWidth, halfHeight)), Tree));
+            m_nodes.Add(new QuadTreeNode<T>(new RectangleF(new PointF(m_bounds.Left + halfWidth, m_bounds.Top + halfHeight), new SizeF(halfWidth, halfHeight)),Tree));
         }
 
     }

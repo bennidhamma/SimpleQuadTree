@@ -31,15 +31,39 @@ namespace SimpleQuadTree
         /// </summary>
         /// <param name="obj"></param>
         public delegate void QTAction(QuadTreeNode<T> obj);
+		
+		private int nodeCapacity = 10;
 
+		public int NodeCapacity {
+			get {
+				return this.nodeCapacity;
+			}
+			set {
+				nodeCapacity = value;
+			}
+		}
+		
+		private int minNodeSize = 10;
+
+		public int MinNodeSize {
+			get {
+				return this.minNodeSize;
+			}
+			set {
+				minNodeSize = value;
+			}
+		}
+		
+		public Func<T, RectangleF> GetRect {get; set;}
+		
         /// <summary>
         /// 
         /// </summary>
         /// <param name="rectangle"></param>
-        public QuadTree(RectangleF rectangle, Func<T, RectangleF> getRect)
+        public QuadTree(RectangleF rectangle)
         {
             m_rectangle = rectangle;
-            m_root = new QuadTreeNode<T>(m_rectangle, getRect);
+            m_root = new QuadTreeNode<T>(m_rectangle, this);
         }
 
         /// <summary>
@@ -73,6 +97,13 @@ namespace SimpleQuadTree
         {
             return m_root.Query(area);
         }
+		
+		public IEnumerable<QuadTreeNode<T>> Nodes
+		{
+			get {
+				return m_root.Nodes;
+			}
+		}
         
         /// <summary>
         /// Do the specified action for each item in the quadtree
