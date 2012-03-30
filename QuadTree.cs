@@ -101,7 +101,9 @@ namespace SimpleQuadTree
 		public IEnumerable<QuadTreeNode<T>> Nodes
 		{
 			get {
-				return m_root.Nodes;
+				yield return m_root;
+				foreach (var r in m_root.Nodes)
+					yield return r;
 			}
 		}
         

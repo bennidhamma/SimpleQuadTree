@@ -42,7 +42,7 @@ namespace SimpleQuadTree
         /// <summary>
         /// Is the node empty
         /// </summary>
-        public bool IsEmpty { get { return m_bounds.IsEmpty || m_nodes.Count == 0; } }
+        public bool IsEmpty { get { return this.Contents.Count == 0 && (m_bounds.IsEmpty || m_nodes.Count == 0); } }
 
         /// <summary>
         /// Area of the quadtree node
@@ -154,27 +154,49 @@ namespace SimpleQuadTree
 
             // if the subnodes are null create them. may not be sucessfull: see below
             // we may be at the smallest allowed size in which case the subnodes will not be created
-            if (m_nodes.Count == 0)
-                CreateSubNodes();
-
-            // for each subnode:
-            // if the node contains the item, add the item to that node and return
-            // this recurses into the node that is just large enough to fit this item
-            foreach (QuadTreeNode<T> node in m_nodes)
-            {
-                if (node.Bounds.Contains(Tree.GetRect(item)))
-                {
-                    node.Insert(item);
-                    return;
-                }
-            }
-
-            // if we make it to here, either
-            // 1) none of the subnodes completely contained the item. or
-            // 2) we're at the smallest subnode size allowed 
-            // add the item to this node's contents.
-            this.Contents.Add(item);
+            //if (m_nodes.Count == 0)
+            //    CreateSubNodes();
+			
+			if (m_nodes.Count == 0 && this.Contents.Count >= Tree.NodeCapacity)
+			{
+				CreateSubNodes ();
+				MoveContentsToSubNodes ();				
+			}
+			
+			if (this.Contents.Count > Tree.NodeCapacity)
+			{
+				//this node is full, let's try and store T in a subnode, if it's small enough.
+				
+	            // for each subnode:
+	            // if the node contains the item, add the item to that node and return
+	            // this recurses into the node that is just large enough to fit this item
+	            foreach (QuadTreeNode<T> node in m_nodes)
+	            {
+	                if (node.Bounds.Contains(Tree.GetRect(item)))
+	                {
+	                    node.Insert(item);
+	                    return;
+	                }
+	            }
+			}
+			//add, even if we are over capacity.
+			this.Contents.Add (item);
         }
+
+		void MoveContentsToSubNodes ()
+		{
+			Contents.RemoveAll (t => {
+        		foreach (var n in m_nodes)
+        		{
+        			if (n.Bounds.Contains (Tree.GetRect(t)))
+        			{
+        				n.Insert (t);
+        				return true;
+        			}
+        		}
+				return false;
+        	});
+		}
 
         public void ForEach(QuadTree<T>.QTAction action)
         {
