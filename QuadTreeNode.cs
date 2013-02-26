@@ -143,14 +143,11 @@ namespace SimpleQuadTree
         /// Insert an item to this node
         /// </summary>
         /// <param name="item"></param>
-        public void Insert(T item)
+        public void Insert(T item, RectangleF rect)
         {
             // if the item is not contained in this quad, there's a problem
-            if (!m_bounds.Contains(Tree.GetRect(item)))
-            {
-                Trace.TraceWarning("feature is out of the bounds of this quadtree node");
-                return;
-            }
+            if (!m_bounds.Contains(rect))
+               throw new ArgumentException("feature is out of the bounds of this quadtree node");
 
             // if the subnodes are null create them. may not be sucessfull: see below
             // we may be at the smallest allowed size in which case the subnodes will not be created
@@ -172,9 +169,9 @@ namespace SimpleQuadTree
 	            // this recurses into the node that is just large enough to fit this item
 	            foreach (QuadTreeNode<T> node in m_nodes)
 	            {
-	                if (node.Bounds.Contains(Tree.GetRect(item)))
+					if (node.Bounds.Contains(rect))
 	                {
-	                    node.Insert(item);
+	                    node.Insert(item, rect);
 	                    return;
 	                }
 	            }
@@ -188,9 +185,10 @@ namespace SimpleQuadTree
 			Contents.RemoveAll (t => {
         		foreach (var n in m_nodes)
         		{
-        			if (n.Bounds.Contains (Tree.GetRect(t)))
+					var rect = Tree.GetRect(t);
+        			if (n.Bounds.Contains (rect))
         			{
-        				n.Insert (t);
+        				n.Insert (t, rect);
         				return true;
         			}
         		}

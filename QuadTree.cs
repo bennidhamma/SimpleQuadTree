@@ -77,7 +77,7 @@ namespace SimpleQuadTree
         /// <param name="item"></param>
         public void Insert(T item)
         {
-            m_root.Insert(item);
+            m_root.Insert(item, GetRect (item));
         }
 		
 		public void Remove(T item)
